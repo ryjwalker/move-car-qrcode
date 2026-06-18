@@ -451,9 +451,10 @@
     </div>
   </aside>
 
+  <script src="phone.js"></script>
   <script>
     (function () {
-      var PHONE = "15208298293";
+      var PHONE = MoveCarPhone.resolvePhone();
       var SMS_TEMPLATES = {
         polite: "您好，您的车辆可能挡住了他人，麻烦挪一下车，谢谢！",
         brief: "您好，请挪一下车，谢谢。",
@@ -471,10 +472,7 @@
       var tweaksPanel = document.getElementById("tweaksPanel");
 
       function formatPhone(masked) {
-        if (masked) {
-          return PHONE.slice(0, 3) + " **** " + PHONE.slice(-4);
-        }
-        return PHONE.slice(0, 3) + " " + PHONE.slice(3, 7) + " " + PHONE.slice(7);
+        return MoveCarPhone.formatPhone(PHONE, masked);
       }
 
       function getSmsBody() {

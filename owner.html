@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;900&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+  <script src="phone.js"></script>
   <script src="qrcode.min.js"></script>
   <style>
     :root {
@@ -471,7 +472,7 @@
 
           <footer class="move-card__footer">
             <span class="move-card__footer-text">扫码联系 · 号码隐私保护</span>
-            <span class="move-card__phone-hint">尾号 8293</span>
+            <span class="move-card__phone-hint" id="phoneTail">尾号 8293</span>
           </footer>
         </article>
       </div>
@@ -499,23 +500,26 @@
         <li>建议塑封或过膜，避免日晒褪色</li>
         <li>贴于<strong>挡风玻璃内侧右下角</strong>或中控台显眼处</li>
       </ul>
+      <p style="margin-top:12px;font-size:13px;"><a href="generate.html" style="color:var(--primary);font-weight:600;text-decoration:none;">需要更换手机号？前往生成页</a></p>
     </aside>
   </div>
 
   <script>
     (function () {
-      var PHONE_TAIL = "8293";
+      var phone = MoveCarPhone.resolvePhone();
       var qrcodeEl = document.getElementById("qrcode");
       var previewLink = document.getElementById("previewLink");
       var printBtn = document.getElementById("printBtn");
+      var phoneTailEl = document.getElementById("phoneTail");
 
       function getContactUrl() {
-        return new URL("index.html", window.location.href).href.split("#")[0];
+        return MoveCarPhone.buildContactUrl(phone);
       }
 
       function renderQr() {
         var url = getContactUrl();
         previewLink.href = url;
+        phoneTailEl.textContent = "尾号 " + phone.slice(-4);
         qrcodeEl.innerHTML = "";
 
         if (typeof QRCode === "undefined") {
