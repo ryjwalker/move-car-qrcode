@@ -429,7 +429,7 @@
         resultSection.classList.add("show");
 
         try {
-          history.replaceState(null, "", "?p=" + phone);
+          history.replaceState(null, "", "?p=" + encodeURIComponent(MoveCarPhone.encodePhoneParam(phone)));
         } catch (e) {}
 
         window.scrollTo({ top: resultSection.offsetTop - 20, behavior: "smooth" });
