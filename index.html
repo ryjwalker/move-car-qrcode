@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
-  <script src="qrcode.min.js"></script>
   <style>
     :root {
       --bg: #f4f1ec;
@@ -29,11 +28,9 @@
       --shadow-1: 0 1px 2px rgba(28, 25, 23, 0.04);
       --shadow-2: 0 8px 32px rgba(28, 25, 23, 0.08);
       --shadow-3: 0 20px 60px rgba(28, 25, 23, 0.12);
-      --space: 8px;
       --font-body: "Noto Sans SC", sans-serif;
       --font-display: "Noto Serif SC", serif;
       --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-      --duration: 0.35s;
     }
 
     [data-theme="dark"] {
@@ -54,15 +51,8 @@
       --shadow-3: 0 20px 60px rgba(0, 0, 0, 0.45);
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html {
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-tap-highlight-color: transparent; }
 
     body {
       min-height: 100dvh;
@@ -121,7 +111,8 @@
 
     @media (prefers-reduced-motion: reduce) {
       .badge-dot { animation: none; }
-      .action-btn, .card, .qr-wrap { transition: none; }
+      .action-btn, .card { transition: none; }
+      .entry { animation: none; }
     }
 
     h1 {
@@ -148,7 +139,6 @@
       padding: 24px;
       margin-bottom: 16px;
       border: 1px solid rgba(120, 113, 108, 0.08);
-      transition: box-shadow var(--duration) var(--ease-out);
     }
 
     [data-theme="dark"] .card {
@@ -219,28 +209,20 @@
       box-shadow: var(--shadow-1);
     }
 
-    .action-btn:active {
-      transform: scale(0.98);
-    }
+    .action-btn:active { transform: scale(0.98); }
 
     .action-btn:focus-visible {
       outline: 3px solid var(--primary);
       outline-offset: 3px;
     }
 
-    .action-btn--call {
-      background: var(--call);
-    }
-
+    .action-btn--call { background: var(--call); }
     .action-btn--call:hover {
       background: var(--primary-hover);
       box-shadow: 0 6px 20px rgba(26, 107, 92, 0.25);
     }
 
-    .action-btn--sms {
-      background: var(--sms);
-    }
-
+    .action-btn--sms { background: var(--sms); }
     .action-btn--sms:hover {
       filter: brightness(1.08);
       box-shadow: 0 6px 20px rgba(45, 106, 143, 0.25);
@@ -263,57 +245,6 @@
       line-height: 1.55;
     }
 
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 16px;
-    }
-
-    .qr-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .qr-frame {
-      padding: 16px;
-      background: #fff;
-      border-radius: var(--radius-md);
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-    }
-
-    [data-theme="dark"] .qr-frame {
-      background: #fafaf9;
-    }
-
-    #qrcode canvas,
-    #qrcode img {
-      display: block;
-      width: 180px !important;
-      height: 180px !important;
-    }
-
-    .qr-caption {
-      text-align: center;
-      font-size: 14px;
-      color: var(--text-muted);
-      text-wrap: pretty;
-      max-width: 280px;
-    }
-
-    .qr-url {
-      font-size: 11px;
-      color: var(--text-muted);
-      word-break: break-all;
-      text-align: center;
-      opacity: 0.7;
-      max-width: 100%;
-    }
-
     .footer {
       margin-top: 24px;
       text-align: center;
@@ -322,7 +253,6 @@
       opacity: 0.75;
     }
 
-    /* Tweaks panel */
     .tweaks-toggle {
       position: fixed;
       bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
@@ -338,12 +268,6 @@
       display: grid;
       place-items: center;
       z-index: 100;
-      transition: transform 0.2s var(--ease-out);
-    }
-
-    .tweaks-toggle:hover {
-      transform: scale(1.05);
-      color: var(--primary);
     }
 
     .tweaks-panel {
@@ -373,7 +297,6 @@
       font-size: 14px;
       font-weight: 700;
       margin-bottom: 16px;
-      letter-spacing: 0.02em;
     }
 
     .tweak-row {
@@ -384,13 +307,9 @@
       margin-bottom: 14px;
     }
 
-    .tweak-row label {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
+    .tweak-row label { font-size: 13px; color: var(--text-muted); }
 
-    .tweak-row select,
-    .tweak-row input[type="text"] {
+    .tweak-row select {
       flex: 1;
       max-width: 160px;
       padding: 8px 10px;
@@ -409,11 +328,7 @@
       flex-shrink: 0;
     }
 
-    .tweak-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+    .tweak-switch input { opacity: 0; width: 0; height: 0; }
 
     .tweak-slider {
       position: absolute;
@@ -421,7 +336,6 @@
       background: var(--bg-accent);
       border-radius: 999px;
       cursor: pointer;
-      transition: background 0.2s;
     }
 
     .tweak-slider::before {
@@ -437,40 +351,22 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     }
 
-    .tweak-switch input:checked + .tweak-slider {
-      background: var(--primary);
-    }
-
-    .tweak-switch input:checked + .tweak-slider::before {
-      transform: translateX(18px);
-    }
+    .tweak-switch input:checked + .tweak-slider { background: var(--primary); }
+    .tweak-switch input:checked + .tweak-slider::before { transform: translateX(18px); }
 
     .entry {
       animation: fadeUp 0.6s var(--ease-out) both;
     }
 
     .entry:nth-child(2) { animation-delay: 0.08s; }
-    .entry:nth-child(3) { animation-delay: 0.16s; }
 
     @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(16px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .entry { animation: none; }
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (min-width: 480px) {
-      .page {
-        padding-top: 48px;
-      }
+      .page { padding-top: 48px; }
     }
   </style>
 </head>
@@ -516,17 +412,6 @@
       </div>
 
       <p class="hint" id="smsPreview">短信将自动填入：「您好，您的车辆可能挡住了他人，麻烦挪一下车，谢谢！」</p>
-    </section>
-
-    <section class="card entry" aria-label="挪车二维码">
-      <div class="section-title">车主专用 · 打印此码</div>
-      <div class="qr-wrap">
-        <div class="qr-frame">
-          <div id="qrcode" role="img" aria-label="挪车联系二维码"></div>
-        </div>
-        <p class="qr-caption">将二维码置于车内显眼处，他人扫码即可联系您挪车</p>
-        <p class="qr-url" id="pageUrl"></p>
-      </div>
     </section>
 
     <p class="footer">号码仅用于挪车联系，请勿骚扰</p>
@@ -579,8 +464,6 @@
       var callBtn = document.getElementById("callBtn");
       var smsBtn = document.getElementById("smsBtn");
       var smsPreview = document.getElementById("smsPreview");
-      var qrcodeEl = document.getElementById("qrcode");
-      var pageUrlEl = document.getElementById("pageUrl");
       var maskToggle = document.getElementById("maskToggle");
       var smsTemplate = document.getElementById("smsTemplate");
       var themeSelect = document.getElementById("themeSelect");
@@ -599,8 +482,7 @@
       }
 
       function buildSmsHref() {
-        var body = encodeURIComponent(getSmsBody());
-        return "sms:" + PHONE + "?body=" + body;
+        return "sms:" + PHONE + "?body=" + encodeURIComponent(getSmsBody());
       }
 
       function updateLinks() {
@@ -608,34 +490,6 @@
         smsBtn.href = buildSmsHref();
         displayPhone.textContent = formatPhone(maskToggle.checked);
         smsPreview.textContent = "短信将自动填入：「" + getSmsBody() + "」";
-      }
-
-      function getPageUrl() {
-        return window.location.href.split("#")[0];
-      }
-
-      function renderQr() {
-        qrcodeEl.innerHTML = "";
-        var url = getPageUrl();
-        pageUrlEl.textContent = url;
-
-        if (typeof QRCode === "undefined") {
-          qrcodeEl.textContent = "二维码加载失败，请刷新页面";
-          return;
-        }
-
-        try {
-          new QRCode(qrcodeEl, {
-            text: url,
-            width: 180,
-            height: 180,
-            colorDark: "#1c1917",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-          });
-        } catch (e) {
-          qrcodeEl.textContent = "二维码生成失败";
-        }
       }
 
       function applyTheme(mode) {
@@ -663,10 +517,7 @@
 
       maskToggle.addEventListener("change", updateLinks);
       smsTemplate.addEventListener("change", updateLinks);
-
-      themeSelect.addEventListener("change", function () {
-        applyTheme(themeSelect.value);
-      });
+      themeSelect.addEventListener("change", function () { applyTheme(themeSelect.value); });
 
       window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
         if (themeSelect.value === "auto") {
@@ -693,7 +544,6 @@
       });
 
       updateLinks();
-      renderQr();
       initTheme();
     })();
   </script>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="车主专用 — 生成挪车二维码并打印">
+  <title>挪车码 · 车主专用</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+  <script src="qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f1ec;
+      --bg-accent: #e8e4dc;
+      --surface: #ffffff;
+      --text: #1c1917;
+      --text-muted: #78716c;
+      --primary: #1a6b5c;
+      --primary-hover: #145548;
+      --primary-soft: rgba(26, 107, 92, 0.1);
+      --accent: #c17a2e;
+      --accent-soft: rgba(193, 122, 46, 0.12);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --shadow-2: 0 8px 32px rgba(28, 25, 23, 0.08);
+      --shadow-3: 0 20px 60px rgba(28, 25, 23, 0.12);
+      --font-body: "Noto Sans SC", sans-serif;
+      --font-display: "Noto Serif SC", serif;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    [data-theme="dark"] {
+      --bg: #141210;
+      --bg-accent: #1e1b18;
+      --surface: #242019;
+      --text: #f5f2ed;
+      --text-muted: #a8a29e;
+      --primary: #3db89a;
+      --primary-hover: #52c9ab;
+      --primary-soft: rgba(61, 184, 154, 0.12);
+      --accent: #e8a84a;
+      --accent-soft: rgba(232, 168, 74, 0.14);
+      --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.35);
+      --shadow-3: 0 20px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100dvh;
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, var(--primary-soft), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, var(--accent-soft), transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: calc(env(safe-area-inset-top, 0px) + 24px) 20px calc(env(safe-area-inset-bottom, 0px) + 40px);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 6vw, 2.125rem);
+      font-weight: 700;
+      line-height: 1.25;
+      text-wrap: pretty;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      text-wrap: pretty;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-2);
+      padding: 28px 24px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(120, 113, 108, 0.08);
+    }
+
+    [data-theme="dark"] .card {
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .qr-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .qr-frame {
+      padding: 20px;
+      background: #fff;
+      border-radius: var(--radius-md);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+    }
+
+    #qrcode canvas,
+    #qrcode img {
+      display: block;
+      width: 220px !important;
+      height: 220px !important;
+    }
+
+    .qr-caption {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-wrap: pretty;
+      max-width: 300px;
+    }
+
+    .qr-url {
+      font-size: 11px;
+      color: var(--text-muted);
+      word-break: break-all;
+      text-align: center;
+      opacity: 0.75;
+      padding: 10px 12px;
+      background: var(--bg-accent);
+      border-radius: var(--radius-sm);
+      width: 100%;
+    }
+
+    .steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .steps li {
+      display: flex;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-wrap: pretty;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+    }
+
+    .preview-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 48px;
+      margin-top: 4px;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--bg-accent);
+      background: var(--bg);
+      color: var(--primary);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s var(--ease-out);
+    }
+
+    .preview-link:hover {
+      background: var(--primary-soft);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      opacity: 0.75;
+    }
+
+    @media print {
+      body::before { display: none; }
+      .page { padding: 0; max-width: none; }
+      .badge, .subtitle, .steps, .preview-link, .footer, .qr-url { display: none; }
+      h1 { text-align: center; font-size: 24px; margin-bottom: 20px; }
+      .card { box-shadow: none; border: none; padding: 0; }
+      .qr-frame { padding: 12px; }
+    }
+
+    @media (min-width: 480px) {
+      .page { padding-top: 48px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="badge">车主专用</div>
+    <h1>您的挪车二维码</h1>
+    <p class="subtitle">打印或截图此码，置于车内显眼处。他人扫码后将进入联系页，不会看到此页面。</p>
+
+    <section class="card" aria-label="挪车二维码">
+      <div class="qr-wrap">
+        <div class="qr-frame">
+          <div id="qrcode" role="img" aria-label="挪车联系二维码"></div>
+        </div>
+        <p class="qr-caption">扫码后将打开挪车联系页，可一键拨打或发送短信</p>
+        <p class="qr-url" id="contactUrl"></p>
+        <a class="preview-link" id="previewLink" href="index.html" target="_blank" rel="noopener">
+          预览扫码后的页面
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <section class="card" aria-label="使用说明">
+      <ol class="steps">
+        <li>
+          <span class="step-num">1</span>
+          <span>截图或打印上方二维码</span>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <span>贴在挡风玻璃内侧等显眼位置</span>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <span>他人扫码即可联系您挪车，无需看到您的完整号码</span>
+        </li>
+      </ol>
+    </section>
+
+    <p class="footer">请妥善保管此页面链接，勿公开分享</p>
+  </main>
+
+  <script>
+    (function () {
+      var qrcodeEl = document.getElementById("qrcode");
+      var contactUrlEl = document.getElementById("contactUrl");
+      var previewLink = document.getElementById("previewLink");
+
+      function getContactUrl() {
+        return new URL("index.html", window.location.href).href.split("#")[0];
+      }
+
+      function renderQr() {
+        var url = getContactUrl();
+        contactUrlEl.textContent = url;
+        previewLink.href = url;
+        qrcodeEl.innerHTML = "";
+
+        if (typeof QRCode === "undefined") {
+          qrcodeEl.textContent = "二维码加载失败，请刷新页面";
+          return;
+        }
+
+        try {
+          new QRCode(qrcodeEl, {
+            text: url,
+            width: 220,
+            height: 220,
+            colorDark: "#1c1917",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        } catch (e) {
+          qrcodeEl.textContent = "二维码生成失败";
+        }
+      }
+
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+
+      renderQr();
+    })();
+  </script>
+</body>
+</html>
