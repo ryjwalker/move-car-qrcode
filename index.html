@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="qrcode.min.js"></script>
   <style>
     :root {
       --bg: #f4f1ec;
@@ -624,17 +624,18 @@
           return;
         }
 
-        QRCode.toCanvas(url, {
-          width: 180,
-          margin: 1,
-          color: { dark: "#1c1917", light: "#ffffff" }
-        }, function (err, canvas) {
-          if (err) {
-            qrcodeEl.textContent = "二维码生成失败";
-            return;
-          }
-          qrcodeEl.appendChild(canvas);
-        });
+        try {
+          new QRCode(qrcodeEl, {
+            text: url,
+            width: 180,
+            height: 180,
+            colorDark: "#1c1917",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        } catch (e) {
+          qrcodeEl.textContent = "二维码生成失败";
+        }
       }
 
       function applyTheme(mode) {
