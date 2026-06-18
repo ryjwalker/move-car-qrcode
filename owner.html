@@ -3,47 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="车主专用 — 生成挪车二维码并打印">
-  <title>挪车码 · 车主专用</title>
+  <meta name="description" content="车主专用 — 打印挪车二维码放置车内">
+  <title>挪车码 · 打印专用</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;900&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
   <script src="qrcode.min.js"></script>
   <style>
     :root {
-      --bg: #f4f1ec;
-      --bg-accent: #e8e4dc;
+      --bg: #eceae4;
       --surface: #ffffff;
       --text: #1c1917;
       --text-muted: #78716c;
       --primary: #1a6b5c;
-      --primary-hover: #145548;
+      --primary-deep: #0f4a40;
       --primary-soft: rgba(26, 107, 92, 0.1);
       --accent: #c17a2e;
-      --accent-soft: rgba(193, 122, 46, 0.12);
-      --radius-lg: 20px;
-      --radius-md: 14px;
-      --radius-sm: 10px;
-      --shadow-2: 0 8px 32px rgba(28, 25, 23, 0.08);
-      --shadow-3: 0 20px 60px rgba(28, 25, 23, 0.12);
+      --accent-soft: rgba(193, 122, 46, 0.15);
+      --card-w: 100mm;
+      --card-h: 148mm;
       --font-body: "Noto Sans SC", sans-serif;
       --font-display: "Noto Serif SC", serif;
       --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    [data-theme="dark"] {
-      --bg: #141210;
-      --bg-accent: #1e1b18;
-      --surface: #242019;
-      --text: #f5f2ed;
-      --text-muted: #a8a29e;
-      --primary: #3db89a;
-      --primary-hover: #52c9ab;
-      --primary-soft: rgba(61, 184, 154, 0.12);
-      --accent: #e8a84a;
-      --accent-soft: rgba(232, 168, 74, 0.14);
-      --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.35);
-      --shadow-3: 0 20px 60px rgba(0, 0, 0, 0.45);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -53,235 +34,480 @@
       font-family: var(--font-body);
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
+      line-height: 1.5;
       -webkit-font-smoothing: antialiased;
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, var(--primary-soft), transparent 60%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, var(--accent-soft), transparent 55%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .page {
-      position: relative;
-      z-index: 1;
-      max-width: 420px;
+    /* ── Screen layout ── */
+    .screen-wrap {
+      max-width: 480px;
       margin: 0 auto;
-      padding: calc(env(safe-area-inset-top, 0px) + 24px) 20px calc(env(safe-area-inset-bottom, 0px) + 40px);
+      padding: 24px 20px 40px;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
+    .screen-header {
+      margin-bottom: 24px;
+    }
+
+    .screen-badge {
+      display: inline-block;
+      padding: 5px 12px;
       border-radius: 999px;
       background: var(--accent-soft);
       color: var(--accent);
       font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      font-family: var(--font-display);
-      font-size: clamp(1.75rem, 6vw, 2.125rem);
       font-weight: 700;
-      line-height: 1.25;
-      text-wrap: pretty;
-      margin-bottom: 10px;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
     }
 
-    .subtitle {
-      font-size: 15px;
+    .screen-header h1 {
+      font-family: var(--font-display);
+      font-size: 1.625rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-wrap: pretty;
+    }
+
+    .screen-header p {
+      font-size: 14px;
       color: var(--text-muted);
       text-wrap: pretty;
-      margin-bottom: 28px;
     }
 
-    .card {
+    .preview-stage {
       background: var(--surface);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-2);
-      padding: 28px 24px;
-      margin-bottom: 16px;
-      border: 1px solid rgba(120, 113, 108, 0.08);
-    }
-
-    [data-theme="dark"] .card {
-      border-color: rgba(255, 255, 255, 0.06);
-    }
-
-    .qr-wrap {
+      border-radius: 16px;
+      padding: 28px 20px 32px;
+      box-shadow: 0 12px 40px rgba(28, 25, 23, 0.1);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
+      gap: 20px;
+      margin-bottom: 20px;
     }
 
-    .qr-frame {
-      padding: 20px;
-      background: #fff;
-      border-radius: var(--radius-md);
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-    }
-
-    #qrcode canvas,
-    #qrcode img {
-      display: block;
-      width: 220px !important;
-      height: 220px !important;
-    }
-
-    .qr-caption {
-      text-align: center;
-      font-size: 14px;
+    .preview-label {
+      font-size: 12px;
+      font-weight: 600;
       color: var(--text-muted);
-      text-wrap: pretty;
-      max-width: 300px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    .qr-url {
-      font-size: 11px;
-      color: var(--text-muted);
-      word-break: break-all;
-      text-align: center;
-      opacity: 0.75;
-      padding: 10px 12px;
-      background: var(--bg-accent);
-      border-radius: var(--radius-sm);
-      width: 100%;
-    }
-
-    .steps {
-      list-style: none;
+    .screen-actions {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .steps li {
-      display: flex;
-      gap: 12px;
-      font-size: 14px;
-      color: var(--text-muted);
-      text-wrap: pretty;
-    }
-
-    .step-num {
-      flex-shrink: 0;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--primary-soft);
-      color: var(--primary);
-      font-size: 12px;
-      font-weight: 700;
-      display: grid;
-      place-items: center;
-    }
-
-    .preview-link {
+    .btn {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       width: 100%;
-      min-height: 48px;
-      margin-top: 4px;
-      padding: 12px 20px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--bg-accent);
-      background: var(--bg);
-      color: var(--primary);
+      min-height: 52px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 12px;
       font-family: inherit;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 600;
+      cursor: pointer;
       text-decoration: none;
-      transition: background 0.2s var(--ease-out);
+      transition: transform 0.15s var(--ease-out), filter 0.15s;
     }
 
-    .preview-link:hover {
-      background: var(--primary-soft);
+    .btn:active { transform: scale(0.98); }
+
+    .btn--primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(26, 107, 92, 0.3);
     }
 
-    .footer {
-      text-align: center;
-      font-size: 12px;
+    .btn--primary:hover { filter: brightness(1.06); }
+
+    .btn--ghost {
+      background: var(--surface);
+      color: var(--primary);
+      border: 1.5px solid rgba(26, 107, 92, 0.25);
+    }
+
+    .btn--ghost:hover { background: var(--primary-soft); }
+
+    .tips {
+      margin-top: 20px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 12px;
+      font-size: 13px;
       color: var(--text-muted);
-      opacity: 0.75;
+      text-wrap: pretty;
+      line-height: 1.65;
     }
 
+    .tips strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .tips ul {
+      margin-top: 8px;
+      padding-left: 18px;
+    }
+
+    .tips li { margin-bottom: 4px; }
+
+    /* ── Printable card ── */
+    .print-sheet {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .move-card {
+      width: var(--card-w);
+      height: var(--card-h);
+      background: #fff;
+      color: #1c1917;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 0.4mm solid #d6d3d1;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .move-card__stripe {
+      width: 100%;
+      height: 5mm;
+      background: linear-gradient(90deg, var(--primary-deep) 0%, var(--primary) 50%, var(--primary-deep) 100%);
+      flex-shrink: 0;
+    }
+
+    .move-card__body {
+      flex: 1;
+      width: 100%;
+      padding: 5mm 7mm 6mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .move-card__top {
+      display: flex;
+      align-items: center;
+      gap: 3mm;
+      margin-bottom: 4mm;
+    }
+
+    .move-card__p-icon {
+      width: 10mm;
+      height: 10mm;
+      border-radius: 2mm;
+      background: var(--primary);
+      color: #fff;
+      font-size: 7mm;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      line-height: 1;
+      font-family: var(--font-body);
+    }
+
+    .move-card__tag {
+      font-size: 3.2mm;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: var(--primary-deep);
+    }
+
+    .move-card__title {
+      font-family: var(--font-display);
+      font-size: 7.5mm;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #1c1917;
+      margin-bottom: 1.5mm;
+      text-wrap: pretty;
+    }
+
+    .move-card__subtitle {
+      font-size: 3.8mm;
+      color: #57534e;
+      margin-bottom: 5mm;
+      text-wrap: pretty;
+    }
+
+    .move-card__qr-box {
+      padding: 3mm;
+      border: 0.5mm solid #e7e5e4;
+      border-radius: 2mm;
+      background: #fff;
+      margin-bottom: 4mm;
+    }
+
+    #qrcode canvas,
+    #qrcode img {
+      display: block;
+      width: 38mm !important;
+      height: 38mm !important;
+    }
+
+    .move-card__scan {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2mm;
+      padding: 2.5mm 5mm;
+      background: #f5f5f4;
+      border-radius: 999px;
+      font-size: 3.2mm;
+      font-weight: 600;
+      color: var(--primary-deep);
+      margin-bottom: 4mm;
+    }
+
+    .move-card__scan svg {
+      width: 4mm;
+      height: 4mm;
+      flex-shrink: 0;
+    }
+
+    .move-card__steps {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5mm;
+      margin-bottom: 4mm;
+    }
+
+    .move-card__step {
+      padding: 2.5mm 2mm;
+      background: #fafaf9;
+      border-radius: 1.5mm;
+      border: 0.3mm solid #e7e5e4;
+    }
+
+    .move-card__step-num {
+      font-size: 2.8mm;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5mm;
+    }
+
+    .move-card__step-text {
+      font-size: 2.8mm;
+      color: #57534e;
+      line-height: 1.35;
+    }
+
+    .move-card__apology {
+      font-size: 3.2mm;
+      color: #78716c;
+      margin-top: auto;
+      padding-top: 3mm;
+      border-top: 0.3mm dashed #d6d3d1;
+      width: 100%;
+      text-wrap: pretty;
+    }
+
+    .move-card__footer {
+      width: 100%;
+      padding: 2.5mm 7mm 3mm;
+      background: #fafaf9;
+      border-top: 0.3mm solid #e7e5e4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .move-card__footer-text {
+      font-size: 2.6mm;
+      color: #a8a29e;
+    }
+
+    .move-card__phone-hint {
+      font-size: 2.8mm;
+      font-weight: 600;
+      color: #78716c;
+      letter-spacing: 0.05em;
+    }
+
+    /* Decorative corner marks for cutting */
+    .move-card__corner {
+      position: absolute;
+      width: 4mm;
+      height: 4mm;
+      border-color: #d6d3d1;
+      border-style: solid;
+      border-width: 0;
+    }
+
+    .move-card__corner--tl { top: 2mm; left: 2mm; border-top-width: 0.3mm; border-left-width: 0.3mm; }
+    .move-card__corner--tr { top: 2mm; right: 2mm; border-top-width: 0.3mm; border-right-width: 0.3mm; }
+    .move-card__corner--bl { bottom: 2mm; left: 2mm; border-bottom-width: 0.3mm; border-left-width: 0.3mm; }
+    .move-card__corner--br { bottom: 2mm; right: 2mm; border-bottom-width: 0.3mm; border-right-width: 0.3mm; }
+
+    /* ── Print ── */
     @media print {
-      body::before { display: none; }
-      .page { padding: 0; max-width: none; }
-      .badge, .subtitle, .steps, .preview-link, .footer, .qr-url { display: none; }
-      h1 { text-align: center; font-size: 24px; margin-bottom: 20px; }
-      .card { box-shadow: none; border: none; padding: 0; }
-      .qr-frame { padding: 12px; }
+      @page {
+        size: A4 portrait;
+        margin: 15mm;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .screen-wrap {
+        max-width: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .preview-stage {
+        background: none;
+        box-shadow: none;
+        padding: 0;
+        border-radius: 0;
+      }
+
+      .preview-label {
+        display: none;
+      }
+
+      .print-sheet {
+        page-break-inside: avoid;
+      }
+
+      .move-card {
+        box-shadow: none;
+        border: 0.3mm solid #ccc;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .move-card__stripe {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .move-card__p-icon {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
     }
 
-    @media (min-width: 480px) {
-      .page { padding-top: 48px; }
+    @media (min-width: 520px) {
+      .screen-wrap { padding-top: 40px; }
     }
   </style>
 </head>
 <body>
-  <main class="page">
-    <div class="badge">车主专用</div>
-    <h1>您的挪车二维码</h1>
-    <p class="subtitle">打印或截图此码，置于车内显眼处。他人扫码后将进入联系页，不会看到此页面。</p>
+  <div class="screen-wrap">
+    <header class="screen-header no-print">
+      <div class="screen-badge">车主专用 · 打印版</div>
+      <h1>挪车二维码打印卡</h1>
+      <p>下方即为放置车内的打印样式，建议彩色打印后塑封或贴于挡风玻璃内侧。</p>
+    </header>
 
-    <section class="card" aria-label="挪车二维码">
-      <div class="qr-wrap">
-        <div class="qr-frame">
-          <div id="qrcode" role="img" aria-label="挪车联系二维码"></div>
-        </div>
-        <p class="qr-caption">扫码后将打开挪车联系页，可一键拨打或发送短信</p>
-        <p class="qr-url" id="contactUrl"></p>
-        <a class="preview-link" id="previewLink" href="index.html" target="_blank" rel="noopener">
-          预览扫码后的页面
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            <polyline points="15 3 21 3 21 9"/>
-            <line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-        </a>
+    <div class="preview-stage">
+      <p class="preview-label no-print">打印预览（100 × 148 mm）</p>
+
+      <div class="print-sheet">
+        <article class="move-card" aria-label="挪车二维码打印卡">
+          <div class="move-card__corner move-card__corner--tl"></div>
+          <div class="move-card__corner move-card__corner--tr"></div>
+          <div class="move-card__corner move-card__corner--bl"></div>
+          <div class="move-card__corner move-card__corner--br"></div>
+
+          <div class="move-card__stripe"></div>
+
+          <div class="move-card__body">
+            <div class="move-card__top">
+              <div class="move-card__p-icon" aria-hidden="true">P</div>
+              <span class="move-card__tag">临时停车</span>
+            </div>
+
+            <h2 class="move-card__title">如需挪车<br>请扫码联系车主</h2>
+            <p class="move-card__subtitle">微信扫一扫 · 即可拨打电话或发送短信</p>
+
+            <div class="move-card__qr-box">
+              <div id="qrcode" role="img" aria-label="挪车联系二维码"></div>
+            </div>
+
+            <div class="move-card__scan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3"/>
+                <rect x="7" y="7" width="10" height="10" rx="1"/>
+              </svg>
+              打开微信 [ 扫一扫 ]
+            </div>
+
+            <div class="move-card__steps">
+              <div class="move-card__step">
+                <div class="move-card__step-num">① 扫码</div>
+                <div class="move-card__step-text">打开联系页面</div>
+              </div>
+              <div class="move-card__step">
+                <div class="move-card__step-num">② 联系</div>
+                <div class="move-card__step-text">一键拨号或发短信</div>
+              </div>
+            </div>
+
+            <p class="move-card__apology">临时停靠，给您带来不便，深表歉意，谢谢理解！</p>
+          </div>
+
+          <footer class="move-card__footer">
+            <span class="move-card__footer-text">扫码联系 · 号码隐私保护</span>
+            <span class="move-card__phone-hint">尾号 8293</span>
+          </footer>
+        </article>
       </div>
-    </section>
+    </div>
 
-    <section class="card" aria-label="使用说明">
-      <ol class="steps">
-        <li>
-          <span class="step-num">1</span>
-          <span>截图或打印上方二维码</span>
-        </li>
-        <li>
-          <span class="step-num">2</span>
-          <span>贴在挡风玻璃内侧等显眼位置</span>
-        </li>
-        <li>
-          <span class="step-num">3</span>
-          <span>他人扫码即可联系您挪车，无需看到您的完整号码</span>
-        </li>
-      </ol>
-    </section>
+    <div class="screen-actions no-print">
+      <button class="btn btn--primary" type="button" id="printBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        打印挪车卡
+      </button>
+      <a class="btn btn--ghost" id="previewLink" href="index.html" target="_blank" rel="noopener">
+        预览扫码后的联系页
+      </a>
+    </div>
 
-    <p class="footer">请妥善保管此页面链接，勿公开分享</p>
-  </main>
+    <aside class="tips no-print">
+      <strong>打印建议</strong>
+      <ul>
+        <li>推荐使用<strong>彩色打印</strong>，识别度更高</li>
+        <li>打印尺寸约 <strong>10 × 14.8 cm</strong>（名片放大版），也可缩放至 A6</li>
+        <li>建议塑封或过膜，避免日晒褪色</li>
+        <li>贴于<strong>挡风玻璃内侧右下角</strong>或中控台显眼处</li>
+      </ul>
+    </aside>
+  </div>
 
   <script>
     (function () {
+      var PHONE_TAIL = "8293";
       var qrcodeEl = document.getElementById("qrcode");
-      var contactUrlEl = document.getElementById("contactUrl");
       var previewLink = document.getElementById("previewLink");
+      var printBtn = document.getElementById("printBtn");
 
       function getContactUrl() {
         return new URL("index.html", window.location.href).href.split("#")[0];
@@ -289,32 +515,31 @@
 
       function renderQr() {
         var url = getContactUrl();
-        contactUrlEl.textContent = url;
         previewLink.href = url;
         qrcodeEl.innerHTML = "";
 
         if (typeof QRCode === "undefined") {
-          qrcodeEl.textContent = "二维码加载失败，请刷新页面";
+          qrcodeEl.textContent = "二维码加载失败";
           return;
         }
 
         try {
           new QRCode(qrcodeEl, {
             text: url,
-            width: 220,
-            height: 220,
+            width: 144,
+            height: 144,
             colorDark: "#1c1917",
             colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
+            correctLevel: QRCode.CorrectLevel.H
           });
         } catch (e) {
           qrcodeEl.textContent = "二维码生成失败";
         }
       }
 
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        document.documentElement.setAttribute("data-theme", "dark");
-      }
+      printBtn.addEventListener("click", function () {
+        window.print();
+      });
 
       renderQr();
     })();
